@@ -99,8 +99,30 @@ bool Plane::intersect(const Ray &r, float tmin, Hit &h) const
 }
 bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const 
 {
-    // TODO implement
-    return false;
+    // auto N = Vector3f::cross(AB, AC).normalized();
+    // auto d = Vector3f::dot(N, _v[0]);
+    auto O = r.getOrigin();
+    auto D = r.getDirection();
+
+    Matrix3f A;
+    A.setCol(0, -D);
+    A.setCol(1, _v[1] - _v[0]);
+    A.setCol(2, _v[2] - _v[0]);
+    auto b = O - _v[0];
+    auto x = A.inverse() * b;
+    auto u=x[1], v=x[2], t=x[0];
+    auto w=1-u-v;
+    if (u<0 || v<0 || w<0 || u>1 || v>1 || w>1) {
+        return false;
+    }
+    if (t < tmin) {
+        return false;
+    }
+    if (t < h.getT()) {
+        Vector3f normal = Vector3f::cross(A.getCol(1), A.getCol(2)).normalized();
+        h.set(t, this->material, normal);
+    }
+    return true;
 }
 
 

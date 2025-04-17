@@ -78,13 +78,24 @@ bool Group::intersect(const Ray &r, float tmin, Hit &h) const
 }
 
 
-Plane::Plane(const Vector3f &normal, float d, Material *m) : Object3D(m) {
-    // TODO implement Plane constructor
-}
+// Plane::Plane(const Vector3f &normal, float d, Material *m) : Object3D(m) {
+//     // TODO implement Plane constructor
+// }
 bool Plane::intersect(const Ray &r, float tmin, Hit &h) const
 {
-    // TODO implement
-    return false;
+    auto O = r.getOrigin();
+    auto D = r.getDirection();
+    auto N = _normal.normalized();
+    auto d = _d;
+    auto t = -(-d + Vector3f::dot(N, O)) / Vector3f::dot(N, D);
+    if (t < tmin) {
+        return false;
+    }
+    if (t < h.getT()) {
+        Vector3f normal = N;
+        h.set(t, this->material, normal);
+    }
+    return true;
 }
 bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const 
 {

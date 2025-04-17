@@ -99,8 +99,6 @@ bool Plane::intersect(const Ray &r, float tmin, Hit &h) const
 }
 bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const 
 {
-    // auto N = Vector3f::cross(AB, AC).normalized();
-    // auto d = Vector3f::dot(N, _v[0]);
     auto O = r.getOrigin();
     auto D = r.getDirection();
 
@@ -112,26 +110,33 @@ bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const
     auto x = A.inverse() * b;
     auto u=x[1], v=x[2], t=x[0];
     auto w=1-u-v;
-    if (u<0 || v<0 || w<0 || u>1 || v>1 || w>1) {
-        return false;
-    }
-    if (t < tmin) {
+    if (u<0 || v<0 || w<0 || u>1 || v>1 || w>1 || t<tmin || t>h.getT()) {
         return false;
     }
     if (t < h.getT()) {
-        Vector3f normal = Vector3f::cross(A.getCol(1), A.getCol(2)).normalized();
-        h.set(t, this->material, normal);
+        Vector3f normal = w*_normals[0] + u*_normals[1] + v*_normals[2];
+        h.set(t, this->material, normal.normalized());
     }
     return true;
 }
 
 
-Transform::Transform(const Matrix4f &m,
-    Object3D *obj) : _object(obj) {
-    // TODO implement Transform constructor
-}
+// Transform::Transform(const Matrix4f &m,
+//     Object3D *obj) : _object(obj) {
+//     // TODO implement Transform constructor
+// }
 bool Transform::intersect(const Ray &r, float tmin, Hit &h) const
 {
-    // TODO implement
+    auto O = r.getOrigin();
+    auto D = r.getDirection();
+    auto O_ = (_invTransform * Vector4f(O, 1)).xyz();
+    auto D_ = (_invTransform * Vector4f(D, 0)).xyz();
+    auto N = h.getNormal().normalized();
+    Ray r_(O_, D_);
+    if (_object->intersect(r_, tmin, h)) {
+        Vector3f normal = (_invTransform.transposed() * Vector4f(N, 0)).xyz().normalized();
+        h.set(h.getT(), h.getMaterial(), normal);
+        return true;
+    }
     return false;
 }

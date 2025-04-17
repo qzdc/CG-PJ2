@@ -151,12 +151,19 @@ private:
 class Transform : public Object3D
 {
 public:
-    Transform(const Matrix4f &m, Object3D *obj);
+    Transform(const Matrix4f &m, Object3D *obj):
+        _transform(m),
+        _object(obj)
+    {
+        _invTransform = _transform.inverse();
+    }
 
     virtual bool intersect(const Ray &r, float tmin, Hit &h) const override;
 
 private:
     Object3D *_object; //un-transformed object  
+    Matrix4f _transform;
+    Matrix4f _invTransform;
 };
 
 

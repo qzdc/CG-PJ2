@@ -19,6 +19,14 @@
                                  float &distToLight) const
     {
         // TODO Implement point light source
+        auto d=_position-p;
+
+        tolight=d.normalized();
+
+        distToLight = d.abs();
+
+        intensity=_color/(_falloff*distToLight*distToLight);
+
         // tolight, intensity, distToLight are outputs
     }
 

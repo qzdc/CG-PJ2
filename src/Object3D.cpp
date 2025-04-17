@@ -78,27 +78,65 @@ bool Group::intersect(const Ray &r, float tmin, Hit &h) const
 }
 
 
-Plane::Plane(const Vector3f &normal, float d, Material *m) : Object3D(m) {
-    // TODO implement Plane constructor
-}
+// Plane::Plane(const Vector3f &normal, float d, Material *m) : Object3D(m) {
+//     // TODO implement Plane constructor
+// }
 bool Plane::intersect(const Ray &r, float tmin, Hit &h) const
 {
-    // TODO implement
-    return false;
+    auto O = r.getOrigin();
+    auto D = r.getDirection();
+    auto N = _normal.normalized();
+    auto d = _d;
+    auto t = -(-d + Vector3f::dot(N, O)) / Vector3f::dot(N, D);
+    if (t < tmin) {
+        return false;
+    }
+    if (t < h.getT()) {
+        Vector3f normal = N;
+        h.set(t, this->material, normal);
+    }
+    return true;
 }
 bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const 
 {
-    // TODO implement
-    return false;
+    auto O = r.getOrigin();
+    auto D = r.getDirection();
+
+    Matrix3f A;
+    A.setCol(0, -D);
+    A.setCol(1, _v[1] - _v[0]);
+    A.setCol(2, _v[2] - _v[0]);
+    auto b = O - _v[0];
+    auto x = A.inverse() * b;
+    auto u=x[1], v=x[2], t=x[0];
+    auto w=1-u-v;
+    if (u<0 || v<0 || w<0 || u>1 || v>1 || w>1 || t<tmin || t>h.getT()) {
+        return false;
+    }
+    if (t < h.getT()) {
+        Vector3f normal = w*_normals[0] + u*_normals[1] + v*_normals[2];
+        h.set(t, this->material, normal.normalized());
+    }
+    return true;
 }
 
 
-Transform::Transform(const Matrix4f &m,
-    Object3D *obj) : _object(obj) {
-    // TODO implement Transform constructor
-}
+// Transform::Transform(const Matrix4f &m,
+//     Object3D *obj) : _object(obj) {
+//     // TODO implement Transform constructor
+// }
 bool Transform::intersect(const Ray &r, float tmin, Hit &h) const
 {
-    // TODO implement
+    auto O = r.getOrigin();
+    auto D = r.getDirection();
+    auto O_ = (_invTransform * Vector4f(O, 1)).xyz();
+    auto D_ = (_invTransform * Vector4f(D, 0)).xyz();
+    auto N = h.getNormal().normalized();
+    Ray r_(O_, D_);
+    if (_object->intersect(r_, tmin, h)) {
+        Vector3f normal = (_invTransform.transposed() * Vector4f(N, 0)).xyz().normalized();
+        h.set(h.getT(), h.getMaterial(), normal);
+        return true;
+    }
     return false;
 }

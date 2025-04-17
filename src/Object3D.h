@@ -80,11 +80,26 @@ private:
 class Plane : public Object3D
 {
 public:
-    Plane(const Vector3f &normal, float d, Material *m);
+    Plane(const Vector3f &normal, float d, Material *m):
+        Object3D(m),
+        _normal(normal),
+        _d(d)
+    {
+    }
 
     virtual bool intersect(const Ray &r, float tmin, Hit &h) const override;
 
+    const Vector3f & getNormal() const {
+        return _normal;
+    }
+
+    float getD() const {
+        return _d;
+    }
+
 private:
+    Vector3f _normal;
+    float _d;
     // TOOD fill in members
 };
 
@@ -136,12 +151,19 @@ private:
 class Transform : public Object3D
 {
 public:
-    Transform(const Matrix4f &m, Object3D *obj);
+    Transform(const Matrix4f &m, Object3D *obj):
+        _transform(m),
+        _object(obj)
+    {
+        _invTransform = _transform.inverse();
+    }
 
     virtual bool intersect(const Ray &r, float tmin, Hit &h) const override;
 
 private:
     Object3D *_object; //un-transformed object  
+    Matrix4f _transform;
+    Matrix4f _invTransform;
 };
 
 

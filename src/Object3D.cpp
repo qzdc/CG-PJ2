@@ -99,8 +99,9 @@ bool Plane::intersect(const Ray &r, float tmin, Hit &h) const
     if (t < h.getT()) {
         Vector3f normal = N;
         h.set(t, this->material, normal);
+        return true;
     }
-    return true;
+    return false;
 }
 bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const 
 {
@@ -121,8 +122,9 @@ bool Triangle::intersect(const Ray &r, float tmin, Hit &h) const
     if (t < h.getT()) {
         Vector3f normal = w*_normals[0] + u*_normals[1] + v*_normals[2];
         h.set(t, this->material, normal.normalized());
+        return true;
     }
-    return true;
+    return false;
 }
 
 

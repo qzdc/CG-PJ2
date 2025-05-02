@@ -51,6 +51,7 @@ public:
         _center(center),
         _radius(radius)
     {
+        type = "Sphere";
     }
 
     virtual bool intersect(const Ray &r, float tmin, Hit &h) const override;
@@ -85,6 +86,7 @@ public:
         _normal(normal),
         _d(d)
     {
+        type = "Plane";
     }
 
     virtual bool intersect(const Ray &r, float tmin, Hit &h) const override;
@@ -119,6 +121,7 @@ public:
         Material *m) :
         Object3D(m)
     {
+        type = "Triangle";
         _v[0] = a;
         _v[1] = b;
         _v[2] = c;

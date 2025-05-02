@@ -67,29 +67,45 @@ Renderer::Render()
 
 
 
-Vector3f
-Renderer::traceRay(const Ray &r,
+Vector3f Renderer::traceRay(const Ray &r,
     float tmin,
     int bounces,
     Hit &h) const
 {
-    // The starter code only implements basic drawing of sphere primitives.
-    // You will implement phong shading, recursive ray tracing, and shadow rays.
-
-    // TODO: IMPLEMENT 
-    if (_scene.getGroup()->intersect(r, tmin, h)) {
-        Vector3f color=_scene.getAmbientLight()*h.getMaterial()->getDiffuseColor();
-        auto p=r.pointAtParameter(h.getT());
-        for(int i=0;i<_scene.getNumLights();i++){
-            Light* light=_scene.getLight(i);
-            Vector3f tolight,intensity;
-            float distToLight;
-            light->getIllumination(p,tolight,intensity,distToLight);
-            color+=h.getMaterial()->shade(r,h,tolight,intensity);
+    printf("bounces = %d\n", bounces);
+    if (_scene.getGroup()->intersect(r, tmin, h)) {//有交点
+        printf("intersected\n");
+        Vector3f I,p;
+        p = r.pointAtParameter(h.getT());
+        printf("point at parameter\n");
+        
+        auto tmp1 = _scene.getAmbientLight();
+        printf("pos1\n");
+        auto mtr_ptr = h.getMaterial();
+        if (mtr_ptr == nullptr) {
+            printf("material is null\n");
         }
-        return color;
-    } else {
-        return _scene.getBackgroundColor(r.getDirection());
-    };
+        auto tmp2 = h.getMaterial()->getDiffuseColor();
+        printf("pos2\n");
+        I = tmp1 + tmp2;
+        I= _scene.getAmbientLight() * h.getMaterial()->getDiffuseColor();
+        printf("check bounces\n");
+        if(bounces>0){
+            printf("in bounces\n");
+            Vector3f N = h.getNormal().normalized();//平面法向量
+            Vector3f temp_ray = r.getDirection().normalized();//反射前的光线
+            Vector3f newR = (temp_ray + 2 * Vector3f::dot(N,-temp_ray) * N).normalized();//反射后的光线
+            Ray newRay(p, newR);
+            // 创建新的光线对象，用于继续光线反射过程
+            Hit new_h = Hit();
+            Vector3f indirect = traceRay(newRay, 0.0001, bounces - 1, new_h);
+            // 递归调用traceRay函数，计算间接光照
+            I += h.getMaterial()->getSpecularColor() * indirect;
+            printf("out bounces\n");
+        }
+        return I;
+    }
+    
+    return _scene.getBackgroundColor(r.getDirection());
+    
 }
-

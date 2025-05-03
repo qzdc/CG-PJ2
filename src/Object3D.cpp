@@ -71,11 +71,6 @@ bool Group::intersect(const Ray &r, float tmin, Hit &h) const
     for (Object3D* o : m_members) {
         if (o->intersect(r, tmin, h)) {
             hit = true;
-            if(h.getMaterial() == nullptr) {
-                printf("?????\n");
-                std::cout << o->getType() << std::endl;
-                printf("?????\n");
-            }
         }
     }
     return hit;

@@ -72,26 +72,11 @@ Vector3f Renderer::traceRay(const Ray &r,
     int bounces,
     Hit &h) const
 {
-    printf("bounces = %d\n", bounces);
     if (_scene.getGroup()->intersect(r, tmin, h)) {//有交点
-        printf("intersected\n");
         Vector3f I,p;
         p = r.pointAtParameter(h.getT());
-        printf("point at parameter\n");
-        
-        auto tmp1 = _scene.getAmbientLight();
-        printf("pos1\n");
-        auto mtr_ptr = h.getMaterial();
-        if (mtr_ptr == nullptr) {
-            printf("material is null\n");
-        }
-        auto tmp2 = h.getMaterial()->getDiffuseColor();
-        printf("pos2\n");
-        I = tmp1 + tmp2;
         I= _scene.getAmbientLight() * h.getMaterial()->getDiffuseColor();
-        printf("check bounces\n");
         if(bounces>0){
-            printf("in bounces\n");
             Vector3f N = h.getNormal().normalized();//平面法向量
             Vector3f temp_ray = r.getDirection().normalized();//反射前的光线
             Vector3f newR = (temp_ray + 2 * Vector3f::dot(N,-temp_ray) * N).normalized();//反射后的光线
@@ -101,7 +86,6 @@ Vector3f Renderer::traceRay(const Ray &r,
             Vector3f indirect = traceRay(newRay, 0.0001, bounces - 1, new_h);
             // 递归调用traceRay函数，计算间接光照
             I += h.getMaterial()->getSpecularColor() * indirect;
-            printf("out bounces\n");
         }
         return I;
     }

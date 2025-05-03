@@ -161,14 +161,14 @@ Vector3f Renderer::traceRay(const Ray &r,
         color= _scene.getAmbientLight() * h.getMaterial()->getDiffuseColor();
         for(auto& light:_scene.lights){
             Vector3f tolight, intensity;
-            float distToLight;//必须为float，否则调用getIllumination()时出错
+            float distToLight;
             light->getIllumination(p, tolight, intensity, distToLight);
-            Vector3f ILight(0);//先不调用shade(),避免无效计算
+            Vector3f ILight(0);
             if (_args.shadows) {
                 Vector3f shadowOrigin = p;
                 Ray shadowRay(shadowOrigin, tolight);
                 Hit shadowHit;
-                bool Intersected = _args.shadows&&_scene.getGroup()->intersect(shadowRay,0.0001f,shadowHit);//是否相交
+                bool Intersected = _args.shadows&&_scene.getGroup()->intersect(shadowRay,0.0001f,shadowHit);
                 double distToIntersection = (shadowRay.pointAtParameter(shadowHit.getT()) - shadowOrigin).abs();
                 if (Intersected&&distToIntersection<distToLight) {
                 }
@@ -189,12 +189,9 @@ Vector3f Renderer::traceRay(const Ray &r,
             Vector3f E = r.getDirection().normalized();
             Vector3f R = E - 2 * Vector3f::dot(N,E) * N;
             R = R.normalized();
-            // Vector3f R = (temp_ray + 2 * Vector3f::dot(N,-temp_ray) * N).normalized();//反射后的光线
             Ray newRay(p, R);
-            // 创建新的光线对象，用于继续光线反射过程
             Hit new_h = Hit();
             Vector3f indirect = traceRay(newRay, 0.0001, bounces - 1, new_h);
-            // 递归调用traceRay函数，计算间接光照
             color += h.getMaterial()->getSpecularColor() * indirect;
         }
         return color;

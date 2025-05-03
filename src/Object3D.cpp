@@ -138,9 +138,9 @@ bool Transform::intersect(const Ray &r, float tmin, Hit &h) const
     auto D = r.getDirection();
     auto O_ = (_invTransform * Vector4f(O, 1)).xyz();
     auto D_ = (_invTransform * Vector4f(D, 0)).xyz();
-    auto N = h.getNormal().normalized();
     Ray r_(O_, D_);
     if (_object->intersect(r_, tmin, h)) {
+        auto N = h.getNormal();
         Vector3f normal = (_invTransform.transposed() * Vector4f(N, 0)).xyz().normalized();
         h.set(h.getT(), h.getMaterial(), normal);
         return true;

@@ -76,6 +76,14 @@ Vector3f Renderer::traceRay(const Ray &r,
         Vector3f I,p;
         p = r.pointAtParameter(h.getT());
         I= _scene.getAmbientLight() * h.getMaterial()->getDiffuseColor();
+        for(auto& light:_scene.lights){
+            Vector3f tolight, intensity;
+            float distToLight;//必须为float，否则调用getIllumination()时出错
+            light->getIllumination(p, tolight, intensity, distToLight);
+            Vector3f ILight(0);//先不调用shade(),避免无效计算
+            ILight = h.getMaterial()->shade(r, h, tolight, intensity);
+            I += ILight;
+        }
         if(bounces>0){
             Vector3f N = h.getNormal().normalized();//平面法向量
             Vector3f temp_ray = r.getDirection().normalized();//反射前的光线
@@ -89,7 +97,6 @@ Vector3f Renderer::traceRay(const Ray &r,
         }
         return I;
     }
-    
     return _scene.getBackgroundColor(r.getDirection());
     
 }

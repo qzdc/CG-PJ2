@@ -177,27 +177,81 @@ $$
 N_{world}=(M^{-1})^TN_{object}
 $$
 
+### 3. 光线追踪与抗锯齿
 
+#### 3.1 实验结果
 
+<table>
+    <tr>
+        <td><center>
+            <img src="../out/a06.png" alt="a06" width="150"/>
+        </center></td>
+        <td><center>
+            <img src="../out/a06n.png" alt="a06n" width="150"/>
+        </center></td>
+        <td><center>
+            <img src="../out/a06d.png" alt="a06d" width="150"/>
+        </center></td>
+    </tr>
+    <tr>
+        <td><center>
+            <img src="../out/a07.png" alt="a07" width="150"/>
+        </center></td>
+        <td><center>
+            <img src="../out/a07n.png" alt="a07n" width="150"/>
+        </center></td>
+        <td><center>
+            <img src="../out/a07d.png" alt="a07d" width="150"/>
+        </center></td>
+    </tr>
+</table>
 
+#### 3.2 实现方式
 
+当bounces大于0时，进行反射。使用下面的公式计算反射方向。
 
+$$
+R=E-2(N \cdot E)N
+$$
 
+然后递归调用trace函数，计算反射光线的颜色。使用下面的公式计算反射光线的颜色。
+$$
+I_{total} = I_{direct} + I_{indirect} * k_{specular}
+$$
 
+其中，$I_{total}$ 是总的光照强度，$I_{direct}$ 是直接光照强度，$I_{indirect}$ 是间接光照强度，$k_{specular}$ 是镜面反射系数。
 
+要计算阴影的投射，将从这个点（Hit）向光源（light）发送光线。如果在光源之前有相交点（Hit），则当前的表面点处于阴影中，并忽略来自该光源的直接照明。
 
+必须将阴影光线发送到所有光源。必须同等地将tmin设置为某个极小值，防止与自己相交。
 
+为了实现抗锯齿，使用随机采样的方法。循环进行16次抖动采样，计算每个采样点的颜色，然后将所有采样点的颜色相加，最后除以采样点的数量。使用下面的公式计算抗锯齿。
+$$
+I_{antialiasing}=\frac{1}{N}\sum_{i=1}^{N}I_{i}
+$$
+其中，$I_{antialiasing}$ 是抗锯齿的光照强度，$N$ 是采样点的数量，$I_{i}$ 是第$i$个采样点的光照强度。
 
+在此之后，再使用高斯滤波器进行模糊处理。下面是高斯滤波器的公式。
 
+$$
+G(x, y) = \frac{1}{2\pi\sigma^2}e^{-\frac{x^2+y^2}{2\sigma^2}}
+$$
 
+但我们这里是离散的情况，且固定kernel大小为3x3，所以我们使用下面的公式。
 
+$$
+G(x, y) = \frac{1}{16} \begin{bmatrix}
+    1 & 2 & 1 \\
+    2 & 4 & 2 \\
+    1 & 2 & 1
+\end{bmatrix}
+$$
 
-
-
-
-
-
-
-
+然后将每个像素点的颜色和周围8个像素点的颜色相乘，然后除以16，得到模糊处理后的颜色。使用下面的公式计算模糊处理后的颜色。
+$$
+I_{blur}=\frac{1}{16}\sum_{i=-1}^{1}\sum_{j=-1}^{1}I_{i,j}
+$$
+其中，$I_{blur}$ 是模糊处理后的颜色，$I_{i,j}$ 是第$i,j$个像素点的颜色。
+最后将模糊处理后的颜色赋值给当前像素点的颜色。
 
 
